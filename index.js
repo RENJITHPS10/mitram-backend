@@ -1,26 +1,29 @@
-const express=require('express')
-require('dotenv').config()
-const cors=require('cors')
-const router=require('./router')
+const express = require('express');
+require('dotenv').config();
+const cors = require('cors');
+const router = require('./router'); // Assuming your routes are in 'router.js' file
+const path = require('path'); // For serving static files
+const mongoose = require('mongoose');
 
-require('./connection')
-// create server
-const app=express()
+// Establish database connection
+require('./connection'); // Assumes you have a database connection file
 
-// server using cors
-app.use(cors())
+// Create Express app
+const app = express();
 
-// to pasrse the json data
-app.use(express.json())
+// Middleware
+app.use(cors()); // Enable CORS
+app.use(express.json()); // Parse JSON request bodies
 
-app.use(router)
+// Serve static files (like file uploads)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Serve files from 'uploads/' folder
 
+// Routes
+app.use(router); // Integrate your routes here, assuming '/router' file contains the routes
 
+// Server listening on a specified port
+const port = process.env.PORT || 4000;
 
-
-const port=4000 || process.env.PORT
-
-app.listen(port,()=>{
-    console.log(`server running successfully at port ${port}`)
-    
-})
+app.listen(port, () => {
+    console.log(`Server running successfully at port ${port}`);
+});
