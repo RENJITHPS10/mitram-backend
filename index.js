@@ -15,6 +15,7 @@ const app = express();
 app.use(cors()); // Enable CORS
 app.use(express.json()); // Parse JSON request bodies
 
+
 // Serve static files (like file uploads)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Serve files from 'uploads/' folder
 

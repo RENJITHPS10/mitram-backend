@@ -28,7 +28,12 @@ const userSchema = new mongoose.Schema({
     isApproved: {
         type: Boolean,
         default: false
-    }
+    },
+    role: {
+        type: String,
+        required: true,
+        enum: ['user', 'volunteer'],  // Added 'volunteer' role
+    },
 });
 
 // Create a model

@@ -1,43 +1,55 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const disasterSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        requried:true
+    name: {
+        type: String,
+        required: true,
     },
-    date:{
-        type:Date,
-        requried:true
+    date: {
+        type: Date,
+        required: true,
     },
-    description:{
-        type:String,
-        requried:true
+    description: {
+        type: String,
+        required: true,
     },
-    location:{
-        type:String,
-        requried:true
+    location: {
+        type: String,
+        required: true,
     },
-    affectedarea:{
-        type:String,
-        requried:true
+    affectedarea: {
+        type: String,
+        required: true,
     },
-    impact:{
-        type:String,
-        requried:true
+    impact: {
+        type: String,
+        required: true,
     },
-    contacts:{
-        type:String,
-        requried:true
+    contacts: {
+        type: String,
+        required: true,
     },
-    image:{
-        type:String,
-        requried:true
+    image: {
+        type: String,
+        required: true,
+    },
+    reportedBy: {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User', // Reference to User model
+        },
+        adminId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Admin', // Reference to Admin model
+        },
+        role: {
+            type: String,
+            enum: ['user', 'admin'], // Limit roles to user or admin
+            required: true,
+        },
+    },
+}, { timestamps: true }); // Adds createdAt and updatedAt timestamps
 
-    }
+const Disaster = mongoose.model('Disaster', disasterSchema);
 
-
-})
-
-const disasters = mongoose.model('disasters', disasterSchema)
-
-module.exports = disasters
+module.exports = Disaster;
