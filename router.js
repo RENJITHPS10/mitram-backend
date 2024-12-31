@@ -19,7 +19,9 @@ router.get('/all-shelter', shelterController.getallshelterController);
 // User and Volunteer Registration and Login
 router.post('/register', multerConfig.single('proof'), userController.userRegister);
 router.post('/login', userController.userLogin);
-
+router.post('/user-reportdisaster',jwtMiddleware,multerConfig.single('image'),userController.reportDisaster)
+router.get('/user/disasters', jwtMiddleware, userController.getUserDisasters);
+router.put('/disasters/:disasterId', jwtMiddleware,multerConfig.single('image') , userController.editDisaster);
 // Admin-Specific Routes
 router.post('/adminlogin',adminController.adminLogin)
 

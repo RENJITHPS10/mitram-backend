@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const jwt = require('jsonwebtoken');
 const Users = require('../model/usermodel');
+const Disaster = require('../model/disastermodel');
 
 exports.userRegister = async (req, res) => {
     const { username, email, phone, password, role } = req.body;
@@ -111,7 +112,7 @@ exports.userLogin = async (req, res) => {
         const token = jwt.sign(
             { userId: user._id, email: user.email, role: user.role }, // Include the role in the token
             process.env.JWT_SECRET,
-            { expiresIn: '1h' } // Set token expiration time
+           
         );
 
         // Send success response with the token and user details
@@ -131,5 +132,119 @@ exports.userLogin = async (req, res) => {
         res.status(500).json({ error: "Something went wrong during login. Please try again later." });
     }
 };
+
+
+// Function to report a disaster
+// userController.js
+exports.reportDisaster = async (req, res) => {
+    try {
+        const { name, date, description, location, affectedarea, impact, contacts } = req.body;
+        const image = req.file ? req.file.path : '';
+
+        // Validate required fields
+        if (!name || !date || !description || !location || !affectedarea || !impact || !contacts || !image) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // Extract user details from req.user
+        const { userId, role } = req.user; // Decoded user data is accessible here
+
+        const newDisaster = new Disaster({
+            name,
+            date,
+            description,
+            location,
+            affectedarea,
+            impact,
+            contacts,
+            image,
+            reportedBy: { userId, role },
+        });
+
+        const savedDisaster = await newDisaster.save();
+
+        res.status(200).json({
+            message: 'Disaster reported successfully',
+            disaster: savedDisaster,
+        });
+    } catch (error) {
+        console.error('Error reporting disaster:', error.message);
+        res.status(500).json({ message: 'Failed to report disaster', error: error.message });
+    }
+};
+
+exports.getUserDisasters = async (req, res) => {
+    try {
+        // Extract userId from req.user (populated via JWT middleware)
+        const { userId } = req.user;
+
+        // Fetch disasters reported by this user
+        const disasters = await Disaster.find({ 'reportedBy.userId': userId });
+
+        // Check if any disasters exist
+        if (disasters.length === 0) {
+            return res.status(404).json({ message: 'No disasters found for this user' });
+        }
+
+        res.status(200).json({
+            message: 'Disasters fetched successfully',
+            disasters,
+        });
+    } catch (error) {
+        console.error('Error fetching user disasters:', error.message);
+        res.status(500).json({
+            message: 'Failed to fetch disasters',
+            error: error.message,
+        });
+    }
+};
+
+// controllers/disasterController.js
+
+exports.editDisaster = async (req, res) => {
+    try {
+        const { disasterId } = req.params; // Disaster ID from the request params
+        const { name, date, description, location, affectedarea, impact, contacts } = req.body; // Extract new data from body
+        const image = req.file ? req.file.path : ''; // Check if there's a new image
+
+        // Validate required fields
+        if (!name || !date || !description || !location || !affectedarea || !impact || !contacts) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+       
+        // Find the disaster by ID
+        const disaster = await Disaster.findById(disasterId);
+        if (!disaster) {
+            return res.status(404).json({ message: 'Disaster not found' });
+        }
+
+        // Update the disaster fields with new data
+        disaster.name = name || disaster.name;
+        disaster.date = date || disaster.date;
+        disaster.description = description || disaster.description;
+        disaster.location = location || disaster.location;
+        disaster.affectedarea = affectedarea || disaster.affectedarea;
+        disaster.impact = impact || disaster.impact;
+        disaster.contacts = contacts || disaster.contacts;
+        disaster.image = image || disaster.image; // Update image only if new one is provided
+
+        // Save the updated disaster
+        const updatedDisaster = await disaster.save();
+
+        res.status(200).json({
+            message: 'Disaster updated successfully',
+            disaster: updatedDisaster,
+        });
+    } catch (error) {
+        console.error('Error updating disaster:', error.message);
+        res.status(500).json({ message: 'Failed to update disaster', error: error.message });
+    }
+};
+
+
+
+
+
+
 
 
