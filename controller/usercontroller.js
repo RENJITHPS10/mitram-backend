@@ -5,6 +5,7 @@ const path = require("path");
 const jwt = require('jsonwebtoken');
 const Users = require('../model/usermodel');
 const Disaster = require('../model/disastermodel');
+const helprequestmodel = require('../model/helprequestmodel');
 
 exports.userRegister = async (req, res) => {
     const { username, email, phone, password, role } = req.body;
@@ -112,7 +113,7 @@ exports.userLogin = async (req, res) => {
         const token = jwt.sign(
             { userId: user._id, email: user.email, role: user.role }, // Include the role in the token
             process.env.JWT_SECRET,
-           
+
         );
 
         // Send success response with the token and user details
@@ -146,8 +147,16 @@ exports.reportDisaster = async (req, res) => {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
+        console.log('Decoded user data:', req.user);
+
         // Extract user details from req.user
-        const { userId, role } = req.user; // Decoded user data is accessible here
+        const { id: userId, role } = req.user; // Use `id` as `userId` to match schema field `userId`
+
+        // Prepare reportedBy based on user role
+        const reportedBy =
+            role === 'admin'
+                ? { adminId: userId, role } // Admin reporting
+                : { userId, role }; // User reporting
 
         const newDisaster = new Disaster({
             name,
@@ -158,7 +167,7 @@ exports.reportDisaster = async (req, res) => {
             impact,
             contacts,
             image,
-            reportedBy: { userId, role },
+            reportedBy,
         });
 
         const savedDisaster = await newDisaster.save();
@@ -172,6 +181,7 @@ exports.reportDisaster = async (req, res) => {
         res.status(500).json({ message: 'Failed to report disaster', error: error.message });
     }
 };
+
 
 exports.getUserDisasters = async (req, res) => {
     try {
@@ -211,7 +221,7 @@ exports.editDisaster = async (req, res) => {
         if (!name || !date || !description || !location || !affectedarea || !impact || !contacts) {
             return res.status(400).json({ message: 'All fields are required' });
         }
-       
+
         // Find the disaster by ID
         const disaster = await Disaster.findById(disasterId);
         if (!disaster) {
@@ -240,8 +250,114 @@ exports.editDisaster = async (req, res) => {
         res.status(500).json({ message: 'Failed to update disaster', error: error.message });
     }
 };
+exports.deleteDisasterById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Find and delete the disaster
+        const deletedDisaster = await Disaster.findByIdAndDelete(id);
+
+        // If disaster not found
+        if (!deletedDisaster) {
+            return res.status(404).json({ message: 'Disaster not found.' });
+        }
+
+        // Send success response
+        res.status(200).json({ message: 'Disaster report deleted successfully.' });
+    } catch (error) {
+        // Handle server errors
+        res.status(500).json({ message: 'An error occurred while deleting the disaster report.', error });
+    }
+};
 
 
+// Create a help request
+exports.createHelpRequest = async (req, res) => {
+    try {
+        const { requestType, description, location, contact } = req.body;
+        const userId = req.user.userId; // Assuming userId is fetched from authenticated user
+        
+        const helpRequest = new helprequestmodel({
+            userId,
+            requestType,
+            description,
+            location,
+            contact,
+        });
+
+        await helpRequest.save();
+        res.status(201).json({ message: "Help request created successfully.", helpRequest });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to create help request.", error: error.message });
+    }
+};
+
+// Get all help requests for a user
+exports.getUsersHelpRequests = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const helpRequests = await helprequestmodel.find({ userId });
+
+        res.status(200).json({ helpRequests });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to retrieve help requests.", error: error.message });
+    }
+};
+
+ exports.updateHelpRequest = async (req, res) => {
+    const { id } = req.params;  // Get the request id from the URL
+    const { requestType, description, location, contact } = req.body;  // Get fields to update from request body
+
+    try {
+        // Find the help request by ID
+        const helpRequest = await helprequestmodel.findById(id);
+
+        if (!helpRequest) {
+            return res.status(404).json({ message: 'Help request not found' });
+        }
+
+        // Update the fields with data from request body
+        helpRequest.requestType = requestType || helpRequest.requestType;
+        helpRequest.description = description || helpRequest.description;
+        helpRequest.location = location || helpRequest.location;
+        helpRequest.contact = contact || helpRequest.contact;
+
+        // Optionally, add a status update if you want to track state changes (e.g., "Pending" to "Approved")
+        helpRequest.dateResolved = new Date();  // You can set this only if the request has been resolved.
+
+        // Save the updated help request
+        await helpRequest.save();
+
+        // Return the updated help request in the response
+        return res.status(200).json({ message: 'Help request updated successfully', helpRequest });
+    } catch (error) {
+        console.error('Error updating help request:', error);
+        return res.status(500).json({ message: 'Server error, failed to update help request' });
+    }
+};
+
+// Delete a specific help request
+
+
+exports.deleteHelpRequestById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Find and delete the help request
+        const deletedHelpRequest = await helprequestmodel.findByIdAndDelete(id);
+
+        // If the help request is not found
+        if (!deletedHelpRequest) {
+            return res.status(404).json({ message: 'Help request not found.' });
+        }
+
+        // Send success response
+        res.status(200).json({ message: 'Help request deleted successfully.' });
+    } catch (error) {
+        // Handle server errors
+        res.status(500).json({ message: 'An error occurred while deleting the help request.', error });
+    }
+};
 
 
 

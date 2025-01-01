@@ -19,16 +19,22 @@ router.get('/all-shelter', shelterController.getallshelterController);
 // User and Volunteer Registration and Login
 router.post('/register', multerConfig.single('proof'), userController.userRegister);
 router.post('/login', userController.userLogin);
-router.post('/user-reportdisaster',jwtMiddleware,multerConfig.single('image'),userController.reportDisaster)
+router.post('/user-reportdisaster', jwtMiddleware, multerConfig.single('image'), userController.reportDisaster)
 router.get('/user/disasters', jwtMiddleware, userController.getUserDisasters);
-router.put('/disasters/:disasterId', jwtMiddleware,multerConfig.single('image') , userController.editDisaster);
+router.put('/disasters/:disasterId', jwtMiddleware, multerConfig.single('image'), userController.editDisaster);
+router.delete('/delete-disasters/:id', jwtMiddleware, userController.deleteDisasterById);
+
+router.post('/helprequest',jwtMiddleware,userController.createHelpRequest)
+router.get('/userhelprequest',jwtMiddleware,userController.getUsersHelpRequests)
+router.put('/updatehelprequest/:id',jwtMiddleware,userController.updateHelpRequest)
+router.delete('/deletehelprequest/:id',jwtMiddleware,userController.deleteHelpRequestById)
 // Admin-Specific Routes
-router.post('/adminlogin',adminController.adminLogin)
+router.post('/adminlogin', adminController.adminLogin)
 
 
 // Approve a user's or volunteer's registration request
 router.patch(
-   '/admin/approve-user/:userId',
+    '/admin/approve-user/:userId',
     jwtMiddleware, // Ensure admin is logged in
     authorize('admin'), // Only admin can access this route
     adminController.approveUser
