@@ -23,7 +23,6 @@ router.post('/user-reportdisaster', jwtMiddleware, multerConfig.single('image'),
 router.get('/user/disasters', jwtMiddleware, userController.getUserDisasters);
 router.put('/disasters/:disasterId', jwtMiddleware, multerConfig.single('image'), userController.editDisaster);
 router.delete('/delete-disasters/:id', jwtMiddleware, userController.deleteDisasterById);
-
 router.post('/helprequest',jwtMiddleware,userController.createHelpRequest)
 router.get('/userhelprequest',jwtMiddleware,userController.getUsersHelpRequests)
 router.put('/updatehelprequest/:id',jwtMiddleware,userController.updateHelpRequest)
@@ -47,5 +46,6 @@ router.get(
     authorize('admin'), // Only admin can access this route
     adminController.getPendingUsers
 );
-
+router.post('/admin/shelters',jwtMiddleware, multerConfig.single('image'),authorize('admin'),adminController.reportShelter)
+router.put('/updateshelters/:id',jwtMiddleware, multerConfig.single('image'),authorize('admin'),adminController.updateShelter)
 module.exports = router;

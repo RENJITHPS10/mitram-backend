@@ -2,6 +2,7 @@ const Admin = require("../model/adminmodel"); // Import the Admin model
 const Users = require("../model/usermodel"); // Import the User model
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const shelters = require("../model/sheltermodel");
 
 
 
@@ -26,8 +27,7 @@ exports.adminLogin = async (req, res) => {
         // Generate JWT token
         const token = jwt.sign(
             { id: admin._id, role: admin.role },
-            process.env.JWT_SECRET,
-            { expiresIn: "1d" } // Token expires in 1 day
+            process.env.JWT_SECRET
         );
         
         res.status(200).json({
@@ -83,3 +83,102 @@ exports.getPendingUsers = async (req, res) => {
         res.status(500).json({ error: "Could not fetch pending users" });
     }
 };
+
+
+
+
+
+exports.reportShelter = async (req, res) => {
+    try {
+        // Admin-only check
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to create a shelter.' });
+        }
+
+        // Logging the request body and uploaded file
+        console.log('Body:', req.body);
+        console.log('File:', req.file);
+
+        // Destructuring form data
+        const { name, location, capacity, current_occupancy, amenities, contact, map } = req.body;
+        const image = req.file ? req.file.path : '';
+
+        // Check if required fields are missing
+        if (!name || !location || !capacity || !current_occupancy || !amenities || !contact || !map || !image) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // Create shelter instance
+        const newShelter = new shelters({
+            name,
+            location,
+            capacity,
+            current_occupancy,
+            amenities,
+            contact,
+            map,
+            image,
+            reportedBy: { adminId: req.user.id, role: req.user.role },
+        });
+
+        const savedShelter = await newShelter.save();
+
+        res.status(200).json({
+            message: 'Shelter created successfully',
+            shelter: savedShelter,
+        });
+    } catch (error) {
+        console.error('Error creating shelter:', error.message);
+        res.status(500).json({ message: 'Failed to create shelter', error: error.message });
+    }
+};
+exports.updateShelter = async (req, res) => {
+    try {
+        // Ensure only admins can update shelters
+        
+
+        // Extract shelter ID from the route params
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ message: 'Shelter ID is required for updating.' });
+        }
+
+        // Prepare updated fields from request data
+        const { name, location, capacity, current_occupancy, amenities, contact, map } = req.body;
+        const image = req.file ? req.file.path : null;
+
+        const updatedData = {
+            ...(name && { name }),
+            ...(location && { location }),
+            ...(capacity && { capacity }),
+            ...(current_occupancy && { current_occupancy }),
+            ...(amenities && { amenities }),
+            ...(contact && { contact }),
+            ...(map && { map }),
+            ...(image && { image }),
+        };
+
+        // Update the shelter and return the result
+        const updatedShelter = await shelters.findByIdAndUpdate(
+            id,
+            { $set: updatedData },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedShelter) {
+            return res.status(404).json({ message: 'Shelter not found.' });
+        }
+
+        res.status(200).json({
+            message: 'Shelter updated successfully',
+            shelter: updatedShelter,
+        });
+    } catch (error) {
+        console.error('Error updating shelter:', error.message);
+        res.status(500).json({ message: 'Failed to update shelter', error: error.message });
+    }
+};
+
+
+
+
