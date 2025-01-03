@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 
 const helpRequestSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
     requestType: {
         type: String,
         enum: ['Food', 'Shelter', 'Medical', 'Rescue', 'Other'],

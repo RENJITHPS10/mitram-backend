@@ -48,4 +48,8 @@ router.get(
 );
 router.post('/admin/shelters',jwtMiddleware, multerConfig.single('image'),authorize('admin'),adminController.reportShelter)
 router.put('/updateshelters/:id',jwtMiddleware, multerConfig.single('image'),authorize('admin'),adminController.updateShelter)
+router.delete('/deleteshelter/:id',jwtMiddleware,authorize('admin'),adminController.deleteshelter)
+router.get('/allhelprequest',jwtMiddleware,authorize('admin'),adminController.gethelprequests)
+router.patch('/allhelprequest/:id',jwtMiddleware,authorize('admin'),adminController.updateHelpRequest)
+router.delete('/allhelprequest/:id',jwtMiddleware,authorize('admin'),adminController.deleteHelpRequest)
 module.exports = router;

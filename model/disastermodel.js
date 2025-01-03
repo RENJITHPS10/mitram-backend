@@ -36,11 +36,11 @@ const disasterSchema = new mongoose.Schema({
     reportedBy: {
         userId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User', // Reference to User model
+            ref: 'Users', // Reference to User model
         },
         adminId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Admin', // Reference to Admin model
+            ref: 'admin', // Reference to Admin model
         },
         role: {
             type: String,

@@ -3,6 +3,7 @@ const Users = require("../model/usermodel"); // Import the User model
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const shelters = require("../model/sheltermodel");
+const helprequestmodel = require("../model/helprequestmodel");
 
 
 
@@ -29,7 +30,7 @@ exports.adminLogin = async (req, res) => {
             { id: admin._id, role: admin.role },
             process.env.JWT_SECRET
         );
-        
+
         res.status(200).json({
             message: "Login successful",
             token,
@@ -135,7 +136,7 @@ exports.reportShelter = async (req, res) => {
 exports.updateShelter = async (req, res) => {
     try {
         // Ensure only admins can update shelters
-        
+
 
         // Extract shelter ID from the route params
         const { id } = req.params;
@@ -178,6 +179,99 @@ exports.updateShelter = async (req, res) => {
         res.status(500).json({ message: 'Failed to update shelter', error: error.message });
     }
 };
+exports.deleteshelter = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        await shelters.findByIdAndDelete(id)
+        res.status(200).json({
+            message: 'deleted successfully'
+        })
+
+    } catch (err) {
+        res.status(500).json({ message: 'failed to delete', err: err.message })
+
+    }
+
+
+
+}
+    exports.gethelprequests = async (req, res) => {
+        try {
+            // Fetch help requests and populate the userId field to include username and other necessary fields
+            const helprequests = await helprequestmodel.find().populate('userId', 'username email') // Populate userId to include name and email
+
+            res.status(200).json({
+                status: 'success',
+                data: helprequests, // Include the populated data
+            });
+        } catch (error) {
+            console.error('Error fetching help requests:', error); // Log the error for debugging
+            res.status(500).json({
+                status: 'failed',
+                message: 'An error occurred while fetching help requests.',
+                error: error.message, // Include error details for better debugging
+            });
+        }
+    };
+exports.updateHelpRequest = async (req, res) => {
+    try {
+        // Extract the ID and the updated fields from the request
+        const { id } = req.params;
+        const updateData = req.body; // Expects an object like { status: 'Approved' }
+
+        // Update the help request and return the updated document
+        const updatedHelpRequest = await helprequestmodel.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true } // Ensure validators and return the updated document
+        );
+
+        if (!updatedHelpRequest) {
+            return res.status(404).json({
+                status: 'failed',
+                message: 'Help request not found.',
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Help request updated successfully.',
+            data: updatedHelpRequest,
+        });
+    } catch (error) {
+        console.error('Error updating help request:', error); // Log the error for debugging
+        res.status(500).json({
+            status: 'failed',
+            message: 'An error occurred while updating the help request.',
+            error: error.message, // Include error details for better debugging
+        });
+    }
+};
+exports.deleteHelpRequest = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedRequest = await helprequestmodel.findByIdAndDelete(id);
+        if (!deletedRequest) {
+            return res.status(404).json({
+                status: 'failed',
+                message: 'Help request not found.',
+            });
+        }
+        res.status(200).json({
+            status: 'success',
+            message: 'Help request deleted successfully.',
+        });
+    } catch (error) {
+        console.error('Error deleting help request:', error);
+        res.status(500).json({
+            status: 'failed',
+            message: 'An error occurred while deleting the help request.',
+        });
+    }
+};
+
+
 
 
 
