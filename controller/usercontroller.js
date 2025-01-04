@@ -150,12 +150,12 @@ exports.reportDisaster = async (req, res) => {
         console.log('Decoded user data:', req.user);
 
         // Extract user details from req.user
-        const { id: userId, role } = req.user; // Use `id` as `userId` to match schema field `userId`
+        const { userId, role,id  } = req.user; // Use `id` as `userId` to match schema field `userId`
 
         // Prepare reportedBy based on user role
         const reportedBy =
             role === 'admin'
-                ? { adminId: userId, role } // Admin reporting
+                ? { adminId:id, role } // Admin reporting
                 : { userId, role }; // User reporting
 
         const newDisaster = new Disaster({

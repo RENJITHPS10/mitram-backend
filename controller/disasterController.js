@@ -4,7 +4,7 @@ exports.getAllDisasterController = async (req, res) => {
     try {
         const allDisasters = await Disaster.find()
             .populate('reportedBy.userId', 'username email')  // Populating userId field with username and email
-            .populate('reportedBy.adminId', 'username email'); // Populating adminId field with username and email
+            .populate('reportedBy.adminId', 'name email'); // Populating adminId field with username and email
 
         res.status(200).json({
             status: 'success',
