@@ -27,6 +27,8 @@ router.post('/helprequest',jwtMiddleware,userController.createHelpRequest)
 router.get('/userhelprequest',jwtMiddleware,userController.getUsersHelpRequests)
 router.put('/updatehelprequest/:id',jwtMiddleware,userController.updateHelpRequest)
 router.delete('/deletehelprequest/:id',jwtMiddleware,userController.deleteHelpRequestById)
+
+
 // Admin-Specific Routes
 router.post('/adminlogin', adminController.adminLogin)
 
@@ -46,6 +48,7 @@ router.get(
     authorize('admin'), // Only admin can access this route
     adminController.getPendingUsers
 );
+router.delete('/admin/reject-user/:userId',jwtMiddleware,authorize('admin'),adminController.deleteUser)
 router.post('/admin/shelters',jwtMiddleware, multerConfig.single('image'),authorize('admin'),adminController.reportShelter)
 router.put('/updateshelters/:id',jwtMiddleware, multerConfig.single('image'),authorize('admin'),adminController.updateShelter)
 router.delete('/deleteshelter/:id',jwtMiddleware,authorize('admin'),adminController.deleteshelter)
