@@ -112,21 +112,20 @@ exports.reportShelter = async (req, res) => {
             return res.status(403).json({ message: 'You are not authorized to create a shelter.' });
         }
 
-        // Logging the request details
-        console.log('Request Body:', req.body);
-        console.log('Uploaded File:', req.file);
+        // Logging the request body and uploaded file
+        console.log('Body:', req.body);
+        console.log('File:', req.file);
 
-        // Destructure request body
+        // Destructuring form data
         const { name, location, capacity, current_occupancy, amenities, contact, map } = req.body;
-        const image = req.file ? req.file.path : null;
+        const image = req.file ? req.file.path : '';
 
-        // Validate fields
+        // Check if required fields are missing
         if (!name || !location || !capacity || !current_occupancy || !amenities || !contact || !map || !image) {
-            console.error('Validation Error: Missing required fields');
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        // Attempt to save shelter
+        // Create shelter instance
         const newShelter = new shelters({
             name,
             location,
@@ -146,15 +145,10 @@ exports.reportShelter = async (req, res) => {
             shelter: savedShelter,
         });
     } catch (error) {
-        console.error('Unexpected Error in reportShelter:', error.stack);
-        res.status(500).json({
-            message: 'Failed to create shelter',
-            error: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined, // Show stack in dev mode only
-        });
+        console.error('Error creating shelter:', error.message);
+        res.status(500).json({ message: 'Failed to create shelter', error: error.message });
     }
 };
-
 exports.updateShelter = async (req, res) => {
     try {
         // Ensure only admins can update shelters
