@@ -16,7 +16,7 @@ const jwtMiddleware = require('./middleware/jwtmiddleware');
 router.get('/all-disaster', disasterController.getAllDisasterController);
 router.get('/all-shelter', shelterController.getallshelterController);
 
-// User and Volunteer Registration and Login
+// User     
 router.post('/register', multerConfig.single('proof'), userController.userRegister);
 router.post('/login', userController.userLogin);
 router.post('/user-reportdisaster', jwtMiddleware, multerConfig.single('image'), userController.reportDisaster)
